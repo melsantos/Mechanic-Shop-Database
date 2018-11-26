@@ -368,9 +368,25 @@ public class MechanicShop{
 		
 	}
 	
-	public static void ListKCarsWithTheMostServices(MechanicShop esql){//9
-		//
-		
+	public static void ListCarsBefore1995With50000Milles(MechanicShop esql){//8
+		try{
+			String query = "SELECT DISTINCT Car.vin, Car.make, Car.model, Car.year ";
+			query += "FROM Car ";
+			query += "WHERE Car.vin = Any( ";
+				query += "SELECT S.car_vin ";
+				query += "FROM Service_Request S ";
+				query += "WHERE S.odometer = 50000 ";
+
+				query += "INTERSECT ";
+
+				query += "SELECT C.vin ";
+				query += "FROM Car C ";
+				query += "WHERE C.year < 1995); ";
+			esql.executeQueryAndPrintResult(query);
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
 	}
 	
 	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//9
