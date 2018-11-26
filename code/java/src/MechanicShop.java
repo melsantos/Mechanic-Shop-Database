@@ -313,7 +313,39 @@ public class MechanicShop{
 	}
 	
 	public static void AddCar(MechanicShop esql){//3
-		
+		try{
+			System.out.print("\tEnter car vin: $");
+			String vin = in.readLine();
+			if (vin.length() == 0 || vin.length() > 16){
+				throw new IllegalArgumentException("Car VIN must be between 1 and 16 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car make: $");
+			String make = in.readLine();
+			if (make.length() == 0 || make.length() > 32){
+				throw new IllegalArgumentException("Car MAKE must be between 1 and 32 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car model: $");
+			String model = in.readLine();
+			if (model.length() == 0 || model.length() > 32){
+				throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car year: $");
+			String year = in.readLine();
+			if (year.length() == 0){
+				throw new IllegalArgumentException("Invalid car YEAR");
+			}
+			int year_int = Integer.parseInt(year); // Throws an exception if year is not an integer amount
+			
+			String query = "INSERT INTO Car VALUES (\'" + vin + "\', \'" + make + "\', \'" + model + "\', \'" + year + "\')";
+			esql.executeUpdate(query);
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
+
 	}
 	
 	public static void InsertServiceRequest(MechanicShop esql){//4
