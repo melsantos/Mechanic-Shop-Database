@@ -10,6 +10,7 @@
  *
  */
 
+import javax.swing.JOptionPane;
 
 import java.sql.DriverManager;
 import java.sql.Connection;
@@ -23,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -305,7 +307,21 @@ public class MechanicShop{
 	}//end readChoice
 	
 	public static void AddCustomer(MechanicShop esql){//1
+		Scanner scan = new Scanner(System.in);
+		String insertCust = "INSERT Customer VALUES";
 		
+		Boolean allParamsCorrect = false;
+
+		String id = "";
+		String fname = "";
+		String lname = "";
+		String phone = "";
+		String address = "";
+
+		System.out.println("Input customer id: ");
+		id = scan.nextLine();
+		System.out.println("Customer ID: " + id);
+		//executeUpdate(insertCust);
 	}
 	
 	public static void AddMechanic(MechanicShop esql){//2
