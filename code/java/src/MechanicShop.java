@@ -329,7 +329,39 @@ public class MechanicShop{
 	}
 	
 	public static void AddCar(MechanicShop esql){//3
-		
+		try{
+			System.out.print("\tEnter car vin: $");
+			String vin = in.readLine();
+			if (vin.length() == 0 || vin.length() > 16){
+				throw new IllegalArgumentException("Car VIN must be between 1 and 16 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car make: $");
+			String make = in.readLine();
+			if (make.length() == 0 || make.length() > 32){
+				throw new IllegalArgumentException("Car MAKE must be between 1 and 32 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car model: $");
+			String model = in.readLine();
+			if (model.length() == 0 || model.length() > 32){
+				throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
+			}
+
+			System.out.print("\tEnter car year: $");
+			String year = in.readLine();
+			if (year.length() == 0){
+				throw new IllegalArgumentException("Invalid car YEAR");
+			}
+			int year_int = Integer.parseInt(year); // Throws an exception if year is not an integer amount
+			
+			String query = "INSERT INTO Car VALUES (\'" + vin + "\', \'" + make + "\', \'" + model + "\', \'" + year + "\')";
+			esql.executeUpdate(query);
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
+
 	}
 	
 	public static void InsertServiceRequest(MechanicShop esql){//4
@@ -349,15 +381,49 @@ public class MechanicShop{
 	}
 	
 	public static void ListCarsBefore1995With50000Milles(MechanicShop esql){//8
-		
+		try{
+			String query = "SELECT DISTINCT Car.vin, Car.make, Car.model, Car.year ";
+			query += "FROM Car ";
+			query += "WHERE Car.vin = Any( ";
+				query += "SELECT S.car_vin ";
+				query += "FROM Service_Request S ";
+				query += "WHERE S.odometer = 50000 ";
+
+				query += "INTERSECT ";
+
+				query += "SELECT C.vin ";
+				query += "FROM Car C ";
+				query += "WHERE C.year < 1995); ";
+			esql.executeQueryAndPrintResult(query);
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
 	}
-	
 	public static void ListKCarsWithTheMostServices(MechanicShop esql){//9
-		//
+		try{
+			System.out.print("\tEnter k: $");
+			String k = in.readLine();
+			int k_int = Integer.parseInt(k);
+			if (k_int != 0){			
+				String query = "SELECT C.vin, C.make, C.model, C.year ";
+				query += "FROM Car C, (";
+					query += "SELECT S.car_vin, COUNT(S.car_vin) as amt_service ";
+					query += "FROM Service_Request S ";
+					query += "GROUP BY S.car_vin ";
+					query += "ORDER BY amt_service DESC ";
+					query += "LIMIT " + k + ") mostServices ";
+				query += "WHERE C.vin = mostServices.car_vin; ";
+				esql.executeQueryAndPrintResult(query);
+			}
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
 		
 	}
-	
-	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//9
+
+	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//10
 		//
 		
 	}
