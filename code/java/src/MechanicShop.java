@@ -22,9 +22,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.stream.IntStream;
+import java.time.format.DateTimeFormatter;  
+import java.time.LocalDateTime;   
+import java.util.Collections;
 
 /**
  * This class defines a simple embedded SQL utility class that is designed to
@@ -526,8 +531,139 @@ public class MechanicShop{
 
 	}
 	
+
 	public static void InsertServiceRequest(MechanicShop esql){//4
+		try{
+			int cid = -1;
+			// Step 1: Search last name
+			System.out.print("\tEnter customer's last name: $ ");
+			String lname = in.readLine();
+			String lnameQuery = "SELECT * FROM Customer WHERE Customer.lname = \'" + lname + "\'";
+			List<List<String>> lnameResults = esql.executeQueryAndReturnResult(lnameQuery);
+			
+			if (lnameResults.size() > 0){
+				// Display all matching results
+				for (int i = 0; i < lnameResults.size(); ++i){
+					System.out.print("\t");
+					System.out.print(i);
+					System.out.print(": ");
+					for (int j = 1; j < lnameResults.get(i).size(); ++j){
+						System.out.print(lnameResults.get(i).get(j));
+						System.out.print(", ");
+					}
+					System.out.print("\n");
+				}
+				// Select customer from results
+				System.out.print("\n\tEnter desired customer's option id: $ ");
+				int cust_choice = Integer.parseInt(in.readLine());
+				if (cust_choice < 0 || cust_choice >= lnameResults.size()){
+					throw new IllegalArgumentException("Invalid customer option id"); 
+				}
+				cid = Integer.parseInt(lnameResults.get(cust_choice).get(0));
+			}
+			else {
+				// Customer did not exist so offer to create a new one
+				System.out.println("\tCould not find a customer with that last name");
+				System.out.print("\tWould you like to add a new customer? [Y/N]: $ ");
+				String go = in.readLine();
+				if (go.equals("Y")){
+					// FIXME: Add new customer
+					return;
+				}
+				else {
+					// Cancel service request
+					System.out.println("\tCancelling service request");
+					return;
+				}
+			}
+
+			// Step 2: List all cars associated with client
+			boolean createCar = false;
+			String vin = "";
 		
+			String carsOwnedQuery = "SELECT C.vin, C.make, C.model, C.year FROM Car C, Owns O WHERE O.customer_id = " + cid + " AND O.car_vin = C.vin";
+			List<List<String>> carsOwnedResults = esql.executeQueryAndReturnResult(carsOwnedQuery);
+
+			if (carsOwnedResults.size() > 0){
+				// Display all matching results
+				for (int i = 0; i < carsOwnedResults.size(); ++i){
+					System.out.print("\t");
+					System.out.print(i);
+					System.out.print(": ");
+					for (int j = 0; j < carsOwnedResults.get(i).size(); ++j){
+						System.out.print(carsOwnedResults.get(i).get(j));
+						System.out.print(", ");
+					}
+					System.out.print("\n");
+				}
+				// Select car from results
+				System.out.print("\n\tWould you like to enter a service request for one of these cars? [Y/N]: $ ");
+				String go = in.readLine();
+				if (go.equals("Y")){
+					// Select customer's car
+					System.out.print("\tEnter desired car's option id: $ ");
+					int car_choice = Integer.parseInt(in.readLine());
+					if (car_choice < 0 || car_choice >= carsOwnedResults.size()){
+						throw new IllegalArgumentException("Invalid car option id"); 
+					}
+					vin = carsOwnedResults.get(car_choice).get(0);
+
+				}
+				else {
+					// Offer to create a car to continue the service request
+					createCar = true;
+				}
+			
+			}
+			else{
+				// Customer has no car associated in DB so ask to create one
+				createCar = true;
+			}
+			if (createCar){
+				// Offer to create a car
+				System.out.print("\tWould you like to add a car for " + lnameResults.get(cid).get(1) +  "? [Y/N]: $ ");
+				String go = in.readLine();
+				if (go.equals("Y")){
+					// FIXME: Add a new car
+					// FIXME: Link it to customer
+					// Return car vin
+				}
+				else{
+					// Cancel service request
+					System.out.println("\tCancelling service request");
+					return;
+				}
+			}
+			
+			// Step 3: Complete service request
+			
+			// Odometer
+			System.out.print("\tEnter the odometer reading of the car: $ ");
+			int odometer = Integer.parseInt(in.readLine());
+			if (odometer < 0){
+				throw new IllegalArgumentException("Invalid customer option id");
+ 			}
+			
+			// Complaint
+			System.out.print("\tEnter customer complaint about car: $ ");
+			String complaint = in.readLine();
+			
+			// Date
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");  
+			LocalDateTime now = LocalDateTime.now();  
+
+			// FIXME: Need auto-increment for RID field
+			String query = "INSERT INTO Service_Request(customer_id, car_vin, date, odometer, complain) VALUES (";
+			query += cid + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
+			esql.executeQuery(query); 
+
+		}
+		catch (NumberFormatException e){
+			System.err.println ("Error: Input must be a valid integer amount");
+		}
+		catch(Exception e){
+			System.err.println (e.getMessage());
+		}
 	}
 	
 	public static void CloseServiceRequest(MechanicShop esql) throws Exception{//5
