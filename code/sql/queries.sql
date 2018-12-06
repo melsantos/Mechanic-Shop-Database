@@ -36,6 +36,7 @@ GROUP BY SR.customer_id) AS A
 WHERE C.id=A.customer_id
 ORDER BY A.Total DESC;
 
+-- Add Cutomer Function
 
 
 

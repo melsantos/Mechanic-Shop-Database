@@ -1,0 +1,9 @@
+- Open startPostgreSQL.sh and change port number
+	- Run source ./startPostgreSQL.sh
+	- type pg_ctl status to see if port is running
+- After server is running execute:
+	- source ./createPostgreDB.sh
+	- cp *.txt /tmp/$USERNAME/myDB/data
+	- psql -h localhost -p $PORT $USERNAME_DB < chapter5.sql
+
+- execute source ./stopPostgreDB.sh to stop the server
