@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -214,6 +215,29 @@ public class MechanicShop{
 	}//end cleanup
 
 	/**
+ 	 * Method that create triggers on customer, mechanic, and service request
+ 	 * Code to convert file into string grabbed from 
+ 	 * https://howtodoinjava.com/java/io/java-read-file-to-string-examples/
+ 	 */
+	public void createTriggers() throws SQLException {
+		StringBuilder query = new StringBuilder();
+		try (BufferedReader reader = new BufferedReader(new FileReader("../sql/triggers.sql"));) {
+			String currentLine;
+			while((currentLine = reader.readLine()) != null)
+			{
+				query.append(currentLine).append("\n");
+			}
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+
+		Statement stmt = this._connection.createStatement ();
+		stmt.execute (query.toString());
+		stmt.close();
+	}
+	
+	/**
 	 * The main execution method
 	 * 
 	 * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
@@ -246,7 +270,10 @@ public class MechanicShop{
 			String user = args[2];
 			
 			esql = new MechanicShop (dbname, dbport, user, "");
-			
+
+			// Create triggers
+			esql.createTriggers();
+	
 			boolean keepon = true;
 			while(keepon){
 				System.out.println("MAIN MENU");
@@ -313,8 +340,8 @@ public class MechanicShop{
 	
 	public static void AddCustomer(MechanicShop esql){//1
 		try {
-			String insertCust = "INSERT INTO customer VALUES ";
-			int id = 0;
+			String insertCust = "INSERT INTO customer (fname, lname, phone, address) VALUES ";
+			// int id = 0;
 			String fname = "";
 			String lname = "";
 			String phone = "";
@@ -323,7 +350,7 @@ public class MechanicShop{
 			Boolean valid = false;
 			
 			// Check Customer ID validity
-			do {
+			/*do {
 				System.out.print("\tEnter customer's ID: $");
 				try {
 					id = scan.nextInt();	
@@ -333,7 +360,7 @@ public class MechanicShop{
 					valid = false;
 					scan.nextLine();
 				}
-			} while (!valid);
+			} while (!valid);*/
 
 			// Check first name validty
 			do {
@@ -400,9 +427,8 @@ public class MechanicShop{
 				}
 			} while (!valid);
 
-			// System.out.println(id + " " + fname + " " + lname + " " + phone + " " + " " + address); 
-
-			insertCust += "(\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
+			insertCust += "(\'" /*+ id + "\', \'"*/ + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
+			// System.out.println(insertCust);
 			esql.executeUpdate(insertCust);
 		}
 		catch(Exception e){
