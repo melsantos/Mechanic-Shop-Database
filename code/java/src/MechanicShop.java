@@ -523,31 +523,83 @@ public class MechanicShop{
 	
 	public static void AddCar(MechanicShop esql){//3
 		try{
-			System.out.print("\tEnter car vin: $");
-			String vin = in.readLine();
-			if (vin.length() == 0 || vin.length() > 16){
-				throw new IllegalArgumentException("Car VIN must be between 1 and 16 characters (inclusive)");
-			}
+			String vin = "";
+			String make = "";
+			String model = "";
+			String year = "";
+			Boolean valid = false;
 
-			System.out.print("\tEnter car make: $");
-			String make = in.readLine();
-			if (make.length() == 0 || make.length() > 32){
-				throw new IllegalArgumentException("Car MAKE must be between 1 and 32 characters (inclusive)");
-			}
+			// Get car vin loop
+			do {
+				System.out.print("\tEnter car vin: $");
+				try {
+					vin = in.readLine();
+					if (vin.length() == 0 || vin.length() > 16){
+						throw new IllegalArgumentException("Car VIN must be between 1 and 16 characters (inclusive)");
+					}
+					valid = true;
+				} catch (IllegalArgumentException e) {
+					System.out.println(e.getMessage());
+					valid = false;
+				}
+			} while(!valid);
 
-			System.out.print("\tEnter car model: $");
-			String model = in.readLine();
-			if (model.length() == 0 || model.length() > 32){
-				throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
-			}
+			// Get car make loop
+			do {
+				System.out.print("\tEnter car make: $");
+				try {
+					make = in.readLine();
+					if (make.length() == 0 || make.length() > 32){
+						throw new IllegalArgumentException("Car MAKE must be between 1 and 32 characters (inclusive)");
+					}
+					valid = true;
+				} catch(IllegalArgumentException e) {
+					System.err.println(e.getMessage());
+					valid = false;
+				}
+			} while(!valid);
 
-			System.out.print("\tEnter car year: $");
-			String year = in.readLine();
-			if (year.length() == 0){
-				throw new IllegalArgumentException("Invalid car YEAR");
-			}
-			int year_int = Integer.parseInt(year); // Throws an exception if year is not an integer amount
-			
+			// Get car model loop
+			do {
+				try{	
+					System.out.print("\tEnter car model: $");
+					model = in.readLine();
+					if (model.length() == 0 || model.length() > 32){
+						throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
+					}
+					valid = true;
+				} catch(IllegalArgumentException e) {
+					System.err.println(e.getMessage());
+					valid = false;
+				}
+			} while(!valid);
+
+			// Get car year loop
+			do {
+				try {
+					System.out.print("\tEnter car year: $");
+					year = in.readLine();
+					if (year.length() == 0){
+						throw new IllegalArgumentException("Invalid car YEAR");
+					}
+
+					// Throws an exception if year is not an integer amount
+					int year_int = Integer.parseInt(year);
+ 
+					if(year_int < 1970) {
+						throw new IllegalArgumentException("Car YEAR must be 1970 or newer");
+					}
+					valid = true;
+				} catch(NumberFormatException e) {
+					System.err.println("Car YEAR must be an int");
+					valid = false;
+
+				} catch(IllegalArgumentException e) {
+					System.err.println(e);
+					valid = false;
+				}
+			} while(!valid);
+
 			String query = "INSERT INTO Car VALUES (\'" + vin + "\', \'" + make + "\', \'" + model + "\', \'" + year + "\')";
 			esql.executeUpdate(query);
 		}
