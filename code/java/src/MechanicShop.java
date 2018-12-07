@@ -438,8 +438,8 @@ public class MechanicShop{
 	
 	public static void AddMechanic(MechanicShop esql){//2
 		try {
-			String insertMech = "INSERT INTO mechanic VALUES ";
-			int id = 0;
+			String insertMech = "INSERT INTO mechanic (fname, lname, experience) VALUES ";
+			// int id = 0;
 			String fname = "";
 			String lname = "";
 			int years = 0;
@@ -447,7 +447,7 @@ public class MechanicShop{
 			Boolean valid = false;
 			
 			// Check Mechanic ID validity
-			do {
+			/*do {
 				System.out.print("\tEnter mechanic's ID: $");
 				try {
 					id = scan.nextInt();	
@@ -457,7 +457,7 @@ public class MechanicShop{
 					valid = false;
 					scan.nextLine();
 				}
-			} while (!valid);
+			} while (!valid);*/
 
 			// Check first name validty
 			do {
@@ -513,7 +513,7 @@ public class MechanicShop{
 
 			// System.out.println(id + " " + fname + " " + lname + " " + years); 
 
-			insertMech += "(\'" + id + "\', \'" + fname + "\', \'" + lname + "\', \'" + years + "\');";
+			insertMech += "(\'" /*+ id + "\', \'"*/ + fname + "\', \'" + lname + "\', \'" + years + "\');";
 			esql.executeUpdate(insertMech);
 		}
 		catch(Exception e){
