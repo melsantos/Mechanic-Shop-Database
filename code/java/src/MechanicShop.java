@@ -720,18 +720,24 @@ public class MechanicShop{
 					System.out.print(i);
 					System.out.print(": ");
 					for (int j = 1; j < lnameResults.get(i).size(); ++j){
-						System.out.print(lnameResults.get(i).get(j));
-						System.out.print(", ");
+						String var1 = lnameResults.get(i).get(j);
+						String var2 = var1.split("\\s+")[0];
+						if (j != 4){
+							System.out.print(var2);
+							System.out.print(", ");
+						}
+						else {
+							System.out.println(var1);
+						}
 					}
-					System.out.print("\n");
 				}
 				// Select customer from results
-				System.out.print("\n\tEnter desired customer's option id: $ ");
+				System.out.print("\tEnter desired customer's option id: $ ");
 				int cust_choice = Integer.parseInt(in.readLine());
 				if (cust_choice < 0 || cust_choice >= lnameResults.size()){
 					throw new IllegalArgumentException("Invalid customer option id"); 
 				}
-				cid = Integer.parseInt(lnameResults.get(cust_choice).get(0));
+				cid = cust_choice;
 			}
 			else {
 				// Customer did not exist so offer to create a new one
@@ -739,8 +745,14 @@ public class MechanicShop{
 				System.out.print("\tWould you like to add a new customer? [Y/N]: $ ");
 				String go = in.readLine();
 				if (go.equals("Y")){
-					// FIXME: Add new customer
-					return;
+					// Add customer
+					AddCustomer(esql);
+					// Grab customer based on last trigger sequence
+					int recentCustomerID = esql.getCurrSeqVal("cust_id_seq");
+					String cidQuery = "SELECT * FROM Customer WHERE Customer.id = " + recentCustomerID;
+					List<List<String>> temp = esql.executeQueryAndReturnResult(cidQuery);
+					lnameResults.add(temp.get(0));
+					cid = 0;
 				}
 				else {
 					// Cancel service request
@@ -748,14 +760,12 @@ public class MechanicShop{
 					return;
 				}
 			}
-
 			// Step 2: List all cars associated with client
 			boolean createCar = false;
 			String vin = "";
 		
-			String carsOwnedQuery = "SELECT C.vin, C.make, C.model, C.year FROM Car C, Owns O WHERE O.customer_id = " + cid + " AND O.car_vin = C.vin";
+			String carsOwnedQuery = "SELECT C.vin, C.make, C.model, C.year FROM Car C, Owns O WHERE O.customer_id = " + lnameResults.get(cid).get(0) + " AND O.car_vin = C.vin";
 			List<List<String>> carsOwnedResults = esql.executeQueryAndReturnResult(carsOwnedQuery);
-
 			if (carsOwnedResults.size() > 0){
 				// Display all matching results
 				for (int i = 0; i < carsOwnedResults.size(); ++i){
@@ -789,24 +799,23 @@ public class MechanicShop{
 			}
 			else{
 				// Customer has no car associated in DB so ask to create one
+				System.out.println(lnameResults.get(cid).get(1).split("\\s+")[0] + "does not have a car registered in the database");
 				createCar = true;
 			}
-			if (createCar){
+			if (createCar == true){
 				// Offer to create a car
-				System.out.print("\tWould you like to add a car for " + lnameResults.get(cid).get(1) +  "? [Y/N]: $ ");
+				System.out.print("\tWould you like to add a car for " + lnameResults.get(cid).get(1).split("\\s+")[0] +  "? [Y/N]: $ ");
 				String go = in.readLine();
 				if (go.equals("Y")){
-					// FIXME: Add a new car
-					// FIXME: Link it to customer
-					// Return car vin
+					AddCar(esql);
+					// FIXME: Link it to customer by using reference parameter
 				}
 				else{
 					// Cancel service request
 					System.out.println("\tCancelling service request");
 					return;
 				}
-			}
-			
+			}	
 			// Step 3: Complete service request
 			
 			// Odometer
