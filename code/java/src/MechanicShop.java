@@ -294,9 +294,9 @@ public class MechanicShop{
 				 * FOLLOW THE SPECIFICATION IN THE PROJECT DESCRIPTION
 				 */
 				switch (readChoice()){
-					case 1: AddCustomer(esql); break;
+					case 1: AddCustomer(esql, true); break;
 					case 2: AddMechanic(esql); break;
-					case 3: AddCar(esql); break;
+					case 3: AddCar(esql, -1); break;
 					case 4: InsertServiceRequest(esql); break;
 					case 5: CloseServiceRequest(esql); break;
 					case 6: ListCustomersWithBillLessThan100(esql); break;
@@ -338,37 +338,26 @@ public class MechanicShop{
 		return input;
 	}//end readChoice
 	
-	public static void AddCustomer(MechanicShop esql){//1
+	public static void AddCustomer(MechanicShop esql, Boolean addNewCar){//1
 		try {
 			String insertCust = "INSERT INTO customer (fname, lname, phone, address) VALUES ";
-			// int id = 0;
 			String fname = "";
 			String lname = "";
 			String phone = "";
 			String address = "";
 			Scanner scan = new Scanner(System.in);
 			Boolean valid = false;
-			
-			// Check Customer ID validity
-			/*do {
-				System.out.print("\tEnter customer's ID: $");
-				try {
-					id = scan.nextInt();	
-					valid = true;
-				} catch (java.util.InputMismatchException e) { 
-					System.out.println("Customer ID must be an integer");
-					valid = false;
-					scan.nextLine();
-				}
-			} while (!valid);*/
 
 			// Check first name validty
 			do {
-				System.out.print("\tEnter customer's first name: $");
+				System.out.print("\tEnter customer's first name: $ ");
 				try {
 					fname = scan.next();	
 					if (fname.length() == 0 || fname.length() > 32) {
 						throw new IllegalArgumentException("Customer's first name must be between 1 and 32 characters (inclusive)");
+					}
+					if(!fname.matches("[a-zA-Z]+")) {
+						throw new IllegalArgumentException("Customer's name must only contain letters");
 					}
 					valid = true;
 				} catch (IllegalArgumentException ex) { 
@@ -380,11 +369,14 @@ public class MechanicShop{
 
 			// Check last name validity
 			do {
-				System.out.print("\tEnter customer's last name: $");
+				System.out.print("\tEnter customer's last name: $ ");
 				try {
 					lname = scan.next();	
 					if (lname.length() == 0 || lname.length() > 32) {
 						throw new IllegalArgumentException("Customer's last name must be between 1 and 32 characters (inclusive)");
+					}
+					if(!lname.matches("[a-zA-Z]+")) {
+						throw new IllegalArgumentException("Customer's name must only contain letters");
 					}
 					valid = true;
 				} catch (IllegalArgumentException ex) { 
@@ -396,11 +388,14 @@ public class MechanicShop{
 			
 			// Check phone validty
 			do {
-				System.out.print("\tEnter customer's phone #: $");
+				System.out.print("\tEnter customer's phone number in the format (###)###-###: $ ");
 				try {
 					phone = scan.next();	
 					if (phone.length() == 0 || phone.length() > 13) {
-						throw new IllegalArgumentException("Customer's phone # must be between 1 and 13 characters (inclusive)");
+						throw new IllegalArgumentException("Customer's phone number must be between 1 and 13 characters (inclusive)");
+					}
+					if(!phone.matches("\\(\\d{3}\\)\\d{3}\\-\\d{4}")) {
+						throw new IllegalArgumentException("Customer's phone number must be of the format (###)###-####");
 					}
 					valid = true;
 				} catch (IllegalArgumentException ex) { 
@@ -430,6 +425,24 @@ public class MechanicShop{
 			insertCust += "(\'" /*+ id + "\', \'"*/ + fname + "\', \'" + lname + "\', \'" + phone + "\', \'" + address + "\');";
 			// System.out.println(insertCust);
 			esql.executeUpdate(insertCust);
+	
+			// Add a car and link to newly made customer
+			if(addNewCar) {
+				System.out.println("Please insert customer's car information as well: ");
+				Boolean carInserted = false;
+				int customerID = esql.getCurrSeqVal("cust_id_seq");
+				// Will continously ask for a car until successful insertion of a car
+				// Catches errors like duplicate vins, invalid vins, etc.
+				do {
+					try {
+						AddCar(esql, customerID);
+						carInserted = true;
+					} catch(Exception e) {
+						carInserted = false;
+					}
+				} while(!carInserted);
+			}
+
 		}
 		catch(Exception e){
 			System.err.println (e.getMessage());
@@ -439,33 +452,22 @@ public class MechanicShop{
 	public static void AddMechanic(MechanicShop esql){//2
 		try {
 			String insertMech = "INSERT INTO mechanic (fname, lname, experience) VALUES ";
-			// int id = 0;
 			String fname = "";
 			String lname = "";
 			int years = 0;
 			Scanner scan = new Scanner(System.in);
-			Boolean valid = false;
-			
-			// Check Mechanic ID validity
-			/*do {
-				System.out.print("\tEnter mechanic's ID: $");
-				try {
-					id = scan.nextInt();	
-					valid = true;
-				} catch (java.util.InputMismatchException e) { 
-					System.out.println("Mechanic ID must be an integer");
-					valid = false;
-					scan.nextLine();
-				}
-			} while (!valid);*/
+			Boolean valid = false;	
 
 			// Check first name validty
 			do {
-				System.out.print("\tEnter mechanic's first name: $");
+				System.out.print("\tEnter mechanic's first name: $ ");
 				try {
 					fname = scan.next();	
 					if (fname.length() == 0 || fname.length() > 32) {
 						throw new IllegalArgumentException("Mechanic's first name must be between 1 and 32 characters (inclusive)");
+					}
+					if(!fname.matches("[a-zA-Z]+")) {
+						throw new IllegalArgumentException("Mechanic's name must only contain letters");
 					}
 					valid = true;
 				} catch (IllegalArgumentException ex) { 
@@ -477,11 +479,14 @@ public class MechanicShop{
 
 			// Check last name validity
 			do {
-				System.out.print("\tEnter mechanic's last name: $");
+				System.out.print("\tEnter mechanic's last name: $ ");
 				try {
 					lname = scan.next();	
 					if (lname.length() == 0 || lname.length() > 32) {
 						throw new IllegalArgumentException("Mechanic's last name must be between 1 and 32 characters (inclusive)");
+					}
+					if(!lname.matches("[a-zA-Z]+")) {
+						throw new IllegalArgumentException("Mechanic's name must only contain letters");
 					}
 					valid = true;
 				} catch (IllegalArgumentException ex) { 
@@ -493,11 +498,11 @@ public class MechanicShop{
 			
 			// Check experience validity
 			do {
-				System.out.print("\tEnter mechanic's years of experience: $");
+				System.out.print("\tEnter mechanic's years of experience: $ ");
 				try {
 					years = scan.nextInt();	
 					if(years < 0 || years > 99) {
-						throw new IllegalArgumentException("Years of experience must be between 1 and 100");
+						throw new IllegalArgumentException("Years of experience must be between 1 and 99 (inclusive)");
 					}
 					valid = true;
 				} catch (java.util.InputMismatchException e) {
@@ -521,7 +526,9 @@ public class MechanicShop{
 		} 
 	}
 	
-	public static void AddCar(MechanicShop esql){//3
+	// if customerID is negative, then create new customer
+	// if customerID is postive and exists in the database, then link car to customer
+	public static void AddCar(MechanicShop esql, int customerID){//3
 		try{
 			String vin = "";
 			String make = "";
@@ -531,12 +538,22 @@ public class MechanicShop{
 
 			// Get car vin loop
 			do {
-				System.out.print("\tEnter car vin: $");
+				int carExists = 0;
+				System.out.print("\tEnter car vin: $ ");
 				try {
 					vin = in.readLine();
-					if (vin.length() == 0 || vin.length() > 16){
-						throw new IllegalArgumentException("Car VIN must be between 1 and 16 characters (inclusive)");
+					if (vin.length() != 16){
+						throw new IllegalArgumentException("Car VIN must be be 16 characters");
 					}
+					// Check if vin is unique
+					String checkCarVins = "SELECT * FROM car WHERE vin=\'";
+					       checkCarVins += vin +"\';";
+					
+					carExists = esql.executeQuery(checkCarVins);
+					if (carExists != 0) {
+						throw new IllegalArgumentException("Car VIN already exists in database, please input a unique VIN");
+					}
+
 					valid = true;
 				} catch (IllegalArgumentException e) {
 					System.out.println(e.getMessage());
@@ -546,7 +563,7 @@ public class MechanicShop{
 
 			// Get car make loop
 			do {
-				System.out.print("\tEnter car make: $");
+				System.out.print("\tEnter car make: $ ");
 				try {
 					make = in.readLine();
 					if (make.length() == 0 || make.length() > 32){
@@ -562,7 +579,7 @@ public class MechanicShop{
 			// Get car model loop
 			do {
 				try{	
-					System.out.print("\tEnter car model: $");
+					System.out.print("\tEnter car model: $ ");
 					model = in.readLine();
 					if (model.length() == 0 || model.length() > 32){
 						throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
@@ -577,9 +594,9 @@ public class MechanicShop{
 			// Get car year loop
 			do {
 				try {
-					System.out.print("\tEnter car year: $");
+					System.out.print("\tEnter car year: $ ");
 					year = in.readLine();
-					if (year.length() == 0){
+					if (year.length() != 4){
 						throw new IllegalArgumentException("Invalid car YEAR");
 					}
 
@@ -601,7 +618,84 @@ public class MechanicShop{
 			} while(!valid);
 
 			String query = "INSERT INTO Car VALUES (\'" + vin + "\', \'" + make + "\', \'" + model + "\', \'" + year + "\')";
+
 			esql.executeUpdate(query);
+
+			// Link car to customer id
+			if(customerID >= 0) {
+				String insertOwns = "INSERT INTO owns (customer_id, car_vin) VALUES (";
+				       insertOwns += "\'" + customerID + "\', ";
+				       insertOwns += "\'" + vin + "\');";
+				esql.executeUpdate(insertOwns);
+			// Ask user if they want to link this car to an existing customer or create a new customer
+			} else {
+				System.out.print("\tDoes this car belong to an existing customer? [Y/N]: $ ");
+
+				String go = in.readLine();
+
+				// Link car to existing customer
+				if (go.equals("Y")) {
+					// Continuely ask for lname that exists in the database
+					List<List<String>> lnameResults;
+					do {
+						System.out.print("\tEnter customer's last name: $ ");
+						String lname = in.readLine();
+						String lnameQuery = "SELECT * FROM Customer WHERE lname = \'" + lname + "\';";
+						lnameResults = esql.executeQueryAndReturnResult(lnameQuery);
+						if (lnameResults.size() == 0) {
+							System.out.println("Last name does not exist in database please try again.");
+						}
+					} while (lnameResults.size() == 0);
+
+					// Display results
+					for(int i = 0; i < lnameResults.size(); ++i) {
+						System.out.print("\t");
+						System.out.print(i);
+						System.out.print(": ");
+						for(int j = 1; j < lnameResults.get(i).size(); ++j) {
+							String var1 = lnameResults.get(i).get(j);
+							String var2 = var1.split("\\s+")[0];
+							if(j != 4) {
+								System.out.print(var2);
+								System.out.print(", ");
+							} 
+							else {
+								System.out.println(var1);
+							}
+						}
+					}
+					// Select customer from results via id
+					int cust_choice = -1;
+					do {
+						System.out.print("\tEnter desired customer's option id: $ ");
+						try {
+							cust_choice = Integer.parseInt(in.readLine());
+						} catch (NumberFormatException e) {
+							cust_choice = -1;
+						}
+
+						if(cust_choice < 0 || cust_choice >= lnameResults.size()) {
+							System.out.println("Invalid customer option id. Try again.");
+						}
+					} while(cust_choice < 0 || cust_choice >= lnameResults.size());
+
+					int cid = cust_choice;
+					String insertOwns = "INSERT INTO owns (customer_id, car_vin) VALUES (";
+					       insertOwns += "\' " + lnameResults.get(cid).get(0) + "\', ";
+					       insertOwns += "\'" + vin + "\');";
+					//System.out.println("Query: " + insertOwns);
+					esql.executeUpdate(insertOwns);
+				
+				} else { // Else create new customer for car
+					System.out.println("Please insert customer information as well");
+					AddCustomer(esql, false);
+					int newCustID = esql.getCurrSeqVal("cust_id_seq");
+					String insertOwns = "INSERT INTO owns (customer_id, car_vin) VALUES (";
+					       insertOwns += "\'" + newCustID + "\', ";
+					       insertOwns += "\'" + vin + "\');";
+					esql.executeUpdate(insertOwns);
+				}
+			}
 		}
 		catch(Exception e){
 			System.err.println (e.getMessage());

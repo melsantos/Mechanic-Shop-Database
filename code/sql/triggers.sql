@@ -53,6 +53,27 @@ CREATE TRIGGER set_mech_id BEFORE INSERT
 ON mechanic FOR EACH ROW
 EXECUTE PROCEDURE set_mech_id();
 
+/* Owns ownership_id trigger */
+DROP TRIGGER IF EXISTS set_owns_id on owns;
+DROP SEQUENCE IF EXISTS owns_id_seq;
+
+-- Start mechanic id from max id of mechanic table
+CREATE SEQUENCE owns_id_seq;
+SELECT setval('owns_id_seq', (SELECT MAX(ownership_id) FROM owns));
+
+CREATE OR REPLACE FUNCTION set_owns_id()
+RETURNS "trigger" as $inc_owns_id$
+	BEGIN
+		NEW.ownership_id := nextval('owns_id_seq');
+		RETURN NEW;
+	END;
+$inc_owns_id$
+LANGUAGE plpgsql VOLATILE;
+
+CREATE TRIGGER set_owns_id BEFORE INSERT
+ON owns FOR EACH ROW
+EXECUTE PROCEDURE set_owns_id();
+
 /* Service Request rid trigger */
 DROP TRIGGER IF EXISTS set_serv_rid on service_request;
 DROP SEQUENCE IF EXISTS serv_rid_seq;
