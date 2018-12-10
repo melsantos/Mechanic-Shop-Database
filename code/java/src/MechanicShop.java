@@ -571,7 +571,7 @@ public class MechanicShop{
 					}
 					valid = true;
 				} catch(IllegalArgumentException e) {
-					System.err.println(e.getMessage());
+					System.out.println(e.getMessage());
 					valid = false;
 				}
 			} while(!valid);
@@ -586,7 +586,7 @@ public class MechanicShop{
 					}
 					valid = true;
 				} catch(IllegalArgumentException e) {
-					System.err.println(e.getMessage());
+					System.out.println(e.getMessage());
 					valid = false;
 				}
 			} while(!valid);
@@ -608,11 +608,11 @@ public class MechanicShop{
 					}
 					valid = true;
 				} catch(NumberFormatException e) {
-					System.err.println("Car YEAR must be an int");
+					System.out.println("Car YEAR must be an int");
 					valid = false;
 
 				} catch(IllegalArgumentException e) {
-					System.err.println(e);
+					System.out.println(e);
 					valid = false;
 				}
 			} while(!valid);
@@ -746,7 +746,7 @@ public class MechanicShop{
 				String go = in.readLine();
 				if (go.equals("Y")){
 					// Add customer
-					AddCustomer(esql);
+					AddCustomer(esql, false);
 					// Grab customer based on last trigger sequence
 					int recentCustomerID = esql.getCurrSeqVal("cust_id_seq");
 					String cidQuery = "SELECT * FROM Customer WHERE Customer.id = " + recentCustomerID;
@@ -807,7 +807,7 @@ public class MechanicShop{
 				System.out.print("\tWould you like to add a car for " + lnameResults.get(cid).get(1).split("\\s+")[0] +  "? [Y/N]: $ ");
 				String go = in.readLine();
 				if (go.equals("Y")){
-					AddCar(esql);
+					AddCar(esql, -1); // I just put that there so that the app compiles
 					// FIXME: Link it to customer by using reference parameter
 				}
 				else{
