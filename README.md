@@ -5,13 +5,13 @@ A database system that tracks information about customers, car, mechanics, car o
  + Customer, mechanic, and service request ID's are automatically incremented and set when inserting a new record.
 
 ## In Progress:
- + **Close A Service Request**: This function will allow you to complete an existing service request. Given a servicerequest number and an employee id, the client application should verify the information provided and attempt to create a closing request record. You should make sure to check for the validity of the provided inputs (i.e. does the mechanic exist, does the request exist, valid closing date after request date, etc.)
+ + **Close A Service Request**: This function will allow you to complete an existing service request. Given a service request number and an employee id, the client application should verify the information provided and attempt to create a closing request record. You should make sure to check for the validity of the provided inputs (i.e. does the mechanic exist, does the request exist, valid closing date after request date, etc.)
 
 ## Finished Functions:
  + **Add Customer:** The user must input the following fields:
    + first name: Must be between 1-32 characters. Must be entirely alphabetic.
    + last name: Must be between 1-32 characters. Must be entirely alphabetic.
-   + phone: Must be of the format (###)###-###. Must only be digits.
+   + phone: Must be of the format (###)###-####. Must only be digits.
    + address: A string of 256 characters.
 
    The system will also prompt the user to input the customer's car information into the database as well.
