@@ -407,7 +407,7 @@ public class MechanicShop{
 
 			// Check address validity
 			do {
-				System.out.print("\tEnter customer's address: $");
+				System.out.print("\tEnter customer's address: $ ");
 				try {
 					scan.nextLine();
 					address = scan.nextLine();	
@@ -878,7 +878,7 @@ public class MechanicShop{
 			vin = esql.executeQueryAndReturnResult(ownsQuery).get(0).get(0);
 
 			String query = "INSERT INTO Service_Request(customer_id, car_vin, date, odometer, complain) VALUES (";
-			query += cid + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
+			query += lnameResults.get(cid).get(0) + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
 			esql.executeUpdate(query); 
 
 		}
