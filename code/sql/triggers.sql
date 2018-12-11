@@ -95,3 +95,24 @@ CREATE TRIGGER set_serv_rid BEFORE INSERT
 ON service_request FOR EACH ROW
 EXECUTE PROCEDURE set_serv_rid();
 
+/* Closed Request rid trigger */
+DROP TRIGGER IF EXISTS set_clos_wid on closed_request;
+DROP SEQUENCE IF EXISTS clos_wid_seq;
+
+-- Start service request rid from max rid of service request table
+CREATE SEQUENCE clos_wid_seq;
+SELECT setval('clos_wid_seq', (SELECT MAX(wid) FROM closed_request));
+
+CREATE OR REPLACE FUNCTION set_clos_wid()
+RETURNS "trigger" as $inc_clos_wid$
+	BEGIN
+		NEW.wid := nextval('clos_wid_seq');
+		RETURN NEW;
+	END;
+$inc_clos_wid$
+LANGUAGE plpgsql VOLATILE;
+
+CREATE TRIGGER set_clos_wid BEFORE INSERT
+ON closed_request FOR EACH ROW
+EXECUTE PROCEDURE set_clos_wid();
+
