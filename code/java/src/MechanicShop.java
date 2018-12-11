@@ -878,7 +878,11 @@ public class MechanicShop{
 			vin = esql.executeQueryAndReturnResult(ownsQuery).get(0).get(0);
 
 			String query = "INSERT INTO Service_Request(customer_id, car_vin, date, odometer, complain) VALUES (";
+<<<<<<< HEAD
+			query += cid + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
+=======
 			query += lnameResults.get(cid).get(0) + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
+>>>>>>> 965e3561bd5e0cc75df506b5142fe6936fce9d8d
 			esql.executeUpdate(query); 
 
 		}
@@ -896,7 +900,9 @@ public class MechanicShop{
 	
 	public static void ListCustomersWithBillLessThan100(MechanicShop esql){//6
 		try{
-			String query = "SELECT date,comment,bill FROM Closed_Request WHERE bill < 100;";
+			String query = "SELECT cr.date, cr.comment, cr.bill ";
+			       query += "FROM Closed_Request cr "; 
+			       query += "WHERE cr.bill < 100;";
 			esql.executeQueryAndPrintResult(query);
 		}
 		catch(Exception e) {
@@ -907,7 +913,11 @@ public class MechanicShop{
 	public static void ListCustomersWithMoreThan20Cars(MechanicShop esql){//7
 		
 		try{
-			String query = "SELECT fname, lname FROM Customer, (SELECT customer_id,COUNT(customer_id) as car_num FROM Owns GROUP BY customer_id HAVING COUNT(customer_id) > 20) AS O WHERE O.customer_id = id;";
+			String query = "SELECT c.fname, c.lname ";
+			       query += "FROM Customer c, Owns O ";
+			       query += "WHERE c.id = o.customer_id ";
+			       query += "GROUP BY c.id ";
+			       query += "HAVING COUNT(*) > 20; ";
 			esql.executeQueryAndPrintResult(query);
 		}
 		catch(Exception e) {
@@ -960,14 +970,14 @@ public class MechanicShop{
 
 	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//10
 		try {
-			String query = "SELECT C.fname , C.lname, Total ";
-			       query += "FROM Customer AS C,";
-			       query += "(SELECT sr.customer_id, SUM(CR.bill) AS Total ";
-			       query += "FROM Closed_Request AS CR, Service_Request AS SR ";
-			       query += "WHERE CR.rid = SR.rid ";
-			       query += "GROUP BY SR.customer_id) AS A ";
-			       query += "WHERE C.id=A.customer_id ";
-			       query += "ORDER BY A.Total DESC;";
+			String query = "SELECT c.fname , c.lname, bill_total.total ";
+			       query += "FROM Customer c, ";
+			       query += "(SELECT SUM(CR.bill) AS total, sr.customer_id ";
+			       query += "FROM Closed_Request cr, Service_Request sr ";
+			       query += "WHERE cr.rid = sr.rid ";
+			       query += "GROUP BY sr.customer_id) AS bill_total ";
+			       query += "WHERE c.id=bill_total.customer_id ";
+			       query += "ORDER BY bill_total.total DESC;";
 			esql.executeQueryAndPrintResult(query);
 
 		}
