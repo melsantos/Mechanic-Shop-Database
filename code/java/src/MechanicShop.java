@@ -878,11 +878,7 @@ public class MechanicShop{
 			vin = esql.executeQueryAndReturnResult(ownsQuery).get(0).get(0);
 
 			String query = "INSERT INTO Service_Request(customer_id, car_vin, date, odometer, complain) VALUES (";
-<<<<<<< HEAD
-			query += cid + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
-=======
 			query += lnameResults.get(cid).get(0) + ", \'" + vin + "\', \'" + dtf.format(now) + "\', " + odometer + ", \'" + complaint + "\')";
->>>>>>> 965e3561bd5e0cc75df506b5142fe6936fce9d8d
 			esql.executeUpdate(query); 
 
 		}
