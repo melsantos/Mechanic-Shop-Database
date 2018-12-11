@@ -891,7 +891,84 @@ public class MechanicShop{
 	}
 	
 	public static void CloseServiceRequest(MechanicShop esql) throws Exception{//5
-		
+		try {
+			boolean valid = false;
+			int mid = -1; // Mechanic id
+			int rid = -1; // Service request number
+			int bill_amount = -1; // Billing
+
+			// Step 1: Ask for and validate mechanic id
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter mechanic id: $ ");
+					mid = Integer.parseInt(in.readLine());
+					if (mid <= 0){
+						throw new IllegalArgumentException("");
+					}
+					// Validate mechanic id
+					String validateMechanicQuery = "SELECT M.id FROM Mechanic M WHERE M.id = " + mid;
+					List<List<String>> validateMechanicResults = esql.executeQueryAndReturnResult(validateMechanicQuery);
+					Integer.parseInt(validateMechanicResults.get(0).get(0)); // Throws exception if result is empty
+					valid = true;
+				}
+				catch (Exception e){
+					System.err.println ("Error: Invalid mechanic id. Must be a positive nonzero integer");
+				}
+			}while(!valid);
+
+			// Step 2: Ask for and validate service request number
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter service request number: $ ");
+					rid = Integer.parseInt(in.readLine());
+					if (rid <= 0){
+						throw new IllegalArgumentException("");
+					}
+					// Validate service request number
+					String validateServiceQuery = "SELECT S.rid FROM Service_Request S WHERE S.rid = " + rid;
+					List<List<String>> validateServiceResults = esql.executeQueryAndReturnResult(validateServiceQuery);
+					Integer.parseInt(validateServiceResults.get(0).get(0)); // Throws exception if result is empty
+					valid = true;
+				}
+				catch (Exception e){
+					System.err.println ("Error: Invalid service request number. Must be a positive non-zero integer");
+				}
+			}while(!valid);
+
+			// Closing date
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");  
+			LocalDateTime now = LocalDateTime.now();  
+
+			// Comment
+			System.out.print("\tEnter any outstanding comments: $ ");
+			String comment = in.readLine();
+
+			// Bill
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter total payment due for rendered service: $ ");
+					bill_amount = Integer.parseInt(in.readLine());
+					if (bill_amount <= 0){
+						throw new IllegalArgumentException("");
+					}
+					valid = true;
+				}
+				catch (Exception e){
+					System.err.println("Error: Invalid payment amount. Must be a positive nonzero integer");
+				}
+			}while(!valid);
+
+			// FIXME: Utilize trigger for wid
+			String query = "INSERT INTO Closed_Request(rid, mid, date, comment, bill) VALUES (";
+			query += rid + ", " + mid + ", \'" + dtf.format(now) + "\', \'" + comment + "\', " + bill_amount + ")";
+			esql.executeUpdate(query); 
+		}
+		catch (Exception e){
+			System.err.println (e.getMessage());
+		}
 	}
 	
 	public static void ListCustomersWithBillLessThan100(MechanicShop esql){//6
