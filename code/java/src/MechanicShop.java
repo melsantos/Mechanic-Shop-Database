@@ -930,7 +930,19 @@ public class MechanicShop{
 					String validateServiceQuery = "SELECT S.rid FROM Service_Request S WHERE S.rid = " + rid;
 					List<List<String>> validateServiceResults = esql.executeQueryAndReturnResult(validateServiceQuery);
 					Integer.parseInt(validateServiceResults.get(0).get(0)); // Throws exception if result is empty
-					valid = true;
+
+					// Check if service request is already closed
+					String isRequestClosedQuery = "SELECT 1 FROM Closed_Request C WHERE C.rid = " + rid;
+					List<List<String>> isRequestClosedResults = esql.executeQueryAndReturnResult(isRequestClosedQuery);
+					try{
+						Integer.parseInt(isRequestClosedResults.get(0).get(0)); // If it throws an exception, the service request is still open
+						System.err.println ("Error: This service request has already been closed");						
+						valid = false;
+					}
+					catch (Exception e){
+						valid = true;
+					}
+					
 				}
 				catch (Exception e){
 					System.err.println ("Error: Invalid service request number. Must be a positive non-zero integer");
@@ -961,7 +973,7 @@ public class MechanicShop{
 				}
 			}while(!valid);
 
-			// FIXME: Utilize trigger for wid
+			// Complete service request
 			String query = "INSERT INTO Closed_Request(rid, mid, date, comment, bill) VALUES (";
 			query += rid + ", " + mid + ", \'" + dtf.format(now) + "\', \'" + comment + "\', " + bill_amount + ")";
 			esql.executeUpdate(query); 
