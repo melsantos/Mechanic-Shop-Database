@@ -1,2 +1,3 @@
 Write any assumptions we during the course of this project. We can format these later for turn in.
 
+Assuming function 9 only considers open service requests (i.e. the service number is not in closed request) 
