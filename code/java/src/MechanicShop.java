@@ -935,7 +935,15 @@ public class MechanicShop{
 			int rid = -1; // Service request number
 			int bill_amount = -1; // Billing
 
-			// Step 1: Ask for and validate mechanic id
+			String openRequestsQuery = "SELECT * FROM Service_Request S WHERE S.rid NOT IN (SELECT C.rid FROM Closed_Request C)";
+			List<List<String>> openRequestsResults = esql.executeQueryAndReturnResult(openRequestsQuery);
+			// Step 1: Check if there are any open service requests
+			if (openRequestsResults.size() == 0){	
+				System.out.println("All service requests are closed");
+				return;
+			}	
+
+			// Step 2: Ask for and validate mechanic id
 			do{
 				valid = false;
 				try{
@@ -955,37 +963,42 @@ public class MechanicShop{
 				}
 			}while(!valid);
 
-			// Step 2: Ask for and validate service request number
-			do{
+			// Step 3: Display open service requests
+			int cust_choice = -1;
+			System.out.println("");
+			do {
+				// Display all matching results
 				valid = false;
-				try{
-					System.out.print("\tEnter service request number: $ ");
-					rid = Integer.parseInt(in.readLine());
-					if (rid <= 0){
-						throw new IllegalArgumentException("");
+				try {
+					for (int i = 0; i < openRequestsResults.size(); ++i){
+						System.out.print("\t");
+						System.out.print(i);
+						System.out.print(": ");
+						for (int j = 1; j < openRequestsResults.get(i).size(); ++j){
+							System.out.print(openRequestsResults.get(i).get(j));
+							if (j != openRequestsResults.get(i).size() - 1){
+								System.out.print(", ");
+							}
+						}
+						System.out.println("");
 					}
-					// Validate service request number
-					String validateServiceQuery = "SELECT S.rid FROM Service_Request S WHERE S.rid = " + rid;
-					List<List<String>> validateServiceResults = esql.executeQueryAndReturnResult(validateServiceQuery);
-					Integer.parseInt(validateServiceResults.get(0).get(0)); // Throws exception if result is empty
+					// Select customer from results
+					System.out.print("\n\tEnter desired open service request's option id: $ ");
+					cust_choice = Integer.parseInt(in.readLine());
+					if (cust_choice < 0 || cust_choice >= openRequestsResults.size()){
+						throw new IllegalArgumentException("Error: Option id must be between 0 and " + (openRequestsResults.size() - 1) + " (inclusive)"); 
+					}
+					valid = true;
+				}
+				catch (NumberFormatException e){
+					System.err.println("Error: Invalid option id");
+				}
+				catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			} while(!valid);
+			rid = cust_choice;
 
-					// Check if service request is already closed
-					String isRequestClosedQuery = "SELECT 1 FROM Closed_Request C WHERE C.rid = " + rid;
-					List<List<String>> isRequestClosedResults = esql.executeQueryAndReturnResult(isRequestClosedQuery);
-					try{
-						Integer.parseInt(isRequestClosedResults.get(0).get(0)); // If it throws an exception, the service request is still open
-						System.err.println ("Error: This service request has already been closed");						
-						valid = false;
-					}
-					catch (Exception e){
-						valid = true;
-					}
-					
-				}
-				catch (Exception e){
-					System.err.println ("Error: Invalid service request number. Must be a positive non-zero integer");
-				}
-			}while(!valid);
 
 			// Closing date
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");  
