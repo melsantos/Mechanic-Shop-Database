@@ -543,7 +543,7 @@ public class MechanicShop{
 				try {
 					vin = in.readLine();
 					if (vin.length() != 16){
-						throw new IllegalArgumentException("Car VIN must be be 16 characters");
+						throw new IllegalArgumentException("Error: Car VIN must be be 16 characters");
 					}
 					// Check if vin is unique
 					String checkCarVins = "SELECT * FROM car WHERE vin=\'";
@@ -551,7 +551,7 @@ public class MechanicShop{
 					
 					carExists = esql.executeQuery(checkCarVins);
 					if (carExists != 0) {
-						throw new IllegalArgumentException("Car VIN already exists in database, please input a unique VIN");
+						throw new IllegalArgumentException("Error: This VIN already exists in database, please input a unique VIN");
 					}
 
 					valid = true;
@@ -567,7 +567,7 @@ public class MechanicShop{
 				try {
 					make = in.readLine();
 					if (make.length() == 0 || make.length() > 32){
-						throw new IllegalArgumentException("Car MAKE must be between 1 and 32 characters (inclusive)");
+						throw new IllegalArgumentException("Error: Car make must be between 1 and 32 characters (inclusive)");
 					}
 					valid = true;
 				} catch(IllegalArgumentException e) {
@@ -582,7 +582,7 @@ public class MechanicShop{
 					System.out.print("\tEnter car model: $ ");
 					model = in.readLine();
 					if (model.length() == 0 || model.length() > 32){
-						throw new IllegalArgumentException("Car MODEL must be between 1 and 32 characters (inclusive)");
+						throw new IllegalArgumentException("Error: Car model must be between 1 and 32 characters (inclusive)");
 					}
 					valid = true;
 				} catch(IllegalArgumentException e) {
@@ -596,19 +596,15 @@ public class MechanicShop{
 				try {
 					System.out.print("\tEnter car year: $ ");
 					year = in.readLine();
-					if (year.length() != 4){
-						throw new IllegalArgumentException("Invalid car YEAR");
-					}
-
 					// Throws an exception if year is not an integer amount
 					int year_int = Integer.parseInt(year);
  
 					if(year_int < 1970) {
-						throw new IllegalArgumentException("Car YEAR must be 1970 or newer");
+						throw new IllegalArgumentException("Error: Car year must be 1970 or newer");
 					}
 					valid = true;
 				} catch(NumberFormatException e) {
-					System.out.println("Car YEAR must be an int");
+					System.out.println("Error: Car year must be 1970 or newer");
 					valid = false;
 
 				} catch(IllegalArgumentException e) {
@@ -675,7 +671,7 @@ public class MechanicShop{
 						}
 
 						if(cust_choice < 0 || cust_choice >= lnameResults.size()) {
-							System.out.println("Invalid customer option id. Try again.");
+							System.out.println("Error: Invalid customer option id. Try again.");
 						}
 					} while(cust_choice < 0 || cust_choice >= lnameResults.size());
 
@@ -708,9 +704,22 @@ public class MechanicShop{
 		try{
 			boolean valid = false;
 			int cid = -1;
+			String lname = "";
 			// Step 1: Search for customer's last name
-			System.out.print("\tEnter customer's last name: $ ");
-			String lname = in.readLine();
+			do{
+				try{
+					System.out.print("\tEnter customer's last name: $ ");
+					lname = in.readLine();
+					if (lname.length() == 0){
+						throw new IllegalArgumentException("Error: Please input a last name");
+					}
+					valid = true;
+				}
+				catch(Exception e){
+					System.err.println(e.getMessage());
+				}
+			}while(!valid);
+
 			String lnameQuery = "SELECT * FROM Customer WHERE Customer.lname = \'" + lname + "\'";
 			List<List<String>> lnameResults = esql.executeQueryAndReturnResult(lnameQuery);
 			
@@ -740,9 +749,12 @@ public class MechanicShop{
 						System.out.print("\tEnter desired customer's option id: $ ");
 						cust_choice = Integer.parseInt(in.readLine());
 						if (cust_choice < 0 || cust_choice >= lnameResults.size()){
-							throw new IllegalArgumentException("Invalid customer option id"); 
+							throw new IllegalArgumentException("Error: Option id must be between 0 and " + (lnameResults.size() - 1) + " (inclusive)"); 
 						}
 						valid = true;
+					}
+					catch (NumberFormatException e){
+						System.err.println("Error: Invalid option id");
 					}
 					catch (Exception e) {
 						System.err.println(e.getMessage());
@@ -752,24 +764,37 @@ public class MechanicShop{
 			}
 			else {
 				// Customer did not exist so offer to create a new one
-				System.out.println("\tCould not find a customer with that last name");
-				System.out.print("\tWould you like to add a new customer? [Y/N]: $ ");
-				String go = in.readLine();
-				if (go.equals("Y")){
-					// Add customer
-					AddCustomer(esql, false);
-					// Grab customer based on last trigger sequence
-					int recentCustomerID = esql.getCurrSeqVal("cust_id_seq");
-					String cidQuery = "SELECT * FROM Customer WHERE Customer.id = " + recentCustomerID;
-					List<List<String>> temp = esql.executeQueryAndReturnResult(cidQuery);
-					lnameResults.add(temp.get(0));
-					cid = 0;
-				}
-				else {
-					// Cancel service request
-					System.out.println("\tCancelling service request");
-					return;
-				}
+				do {
+					try{
+						valid = false;
+
+						System.out.println("\tCould not find a customer with that last name");
+						System.out.print("\tWould you like to add a new customer? [Y/N]: $ ");
+						String go = in.readLine();
+						if (go.equals("Y")){
+							// Add customer
+							AddCustomer(esql, false);
+							// Grab customer based on last trigger sequence
+							int recentCustomerID = esql.getCurrSeqVal("cust_id_seq");
+							String cidQuery = "SELECT * FROM Customer WHERE Customer.id = " + recentCustomerID;
+							List<List<String>> temp = esql.executeQueryAndReturnResult(cidQuery);
+							lnameResults.add(temp.get(0));
+							cid = 0;
+							valid = true;
+						}
+						else if (go.equals("N")) {
+							// Cancel service request
+							System.out.println("\tCancelling service request");
+							return;
+						}
+						else {
+							throw new IllegalArgumentException("Error: Please use either Y or N");
+						}
+					}
+					catch (Exception e){
+						System.err.println(e.getMessage());
+					}
+				}while(!valid);
 			}
 			// Step 2: List all cars associated with client
 			boolean createCar = false;
@@ -814,8 +839,11 @@ public class MechanicShop{
 									valid = true;
 								}
 								else {
-									throw new IllegalArgumentException("Error: Please use either  Y or N");
+									throw new IllegalArgumentException("Error: Please use either Y or N");
 								}
+							}
+							catch (NumberFormatException e){
+								System.err.println("Error: Invalid option id");
 							}
 							catch (Exception e){
 								System.err.println(e.getMessage());
