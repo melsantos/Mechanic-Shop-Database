@@ -1032,20 +1032,34 @@ public class MechanicShop{
 	}
 	public static void ListKCarsWithTheMostServices(MechanicShop esql){//9
 		try{
-			System.out.print("\tEnter k: $");
-			String k = in.readLine();
-			int k_int = Integer.parseInt(k);
-			if (k_int != 0){			
-				String query = "SELECT C.vin, C.make, C.model, C.year ";
-				query += "FROM Car C, (";
-					query += "SELECT S.car_vin, COUNT(S.car_vin) as amt_service ";
-					query += "FROM Service_Request S ";
-					query += "GROUP BY S.car_vin ";
-					query += "ORDER BY amt_service DESC ";
-					query += "LIMIT " + k + ") mostServices ";
-				query += "WHERE C.vin = mostServices.car_vin; ";
-				esql.executeQueryAndPrintResult(query);
-			}
+			boolean valid = false;
+			String k = "";
+			do {
+				try{
+					System.out.print("\tEnter the amount limit of results: $ ");
+					k = in.readLine();
+					int k_int = Integer.parseInt(k);
+					if (k_int <= 0){
+						throw new IllegalArgumentException("");
+					}
+					valid = true;
+				}
+				catch(Exception e){
+					System.err.println ("Error: Amount limit must be a valid positive integer not equal to 0");
+				}
+			}while(!valid);	
+			String query = "SELECT C.make, C.model, mostServices.amt_service ";
+			query += "FROM Car C, (";
+				query += "SELECT S.car_vin, COUNT(S.car_vin) as amt_service ";
+				query += "FROM Service_Request S ";
+				query += "GROUP BY S.car_vin ";
+				query += "ORDER BY amt_service DESC ";
+				query += ") mostServices ";
+			query += "WHERE C.vin = mostServices.car_vin ";
+			query += "ORDER BY mostServices.amt_service DESC ";
+			query += "LIMIT " + k + ";";
+			esql.executeQueryAndPrintResult(query);
+
 		}
 		catch(Exception e){
 			System.err.println (e.getMessage());
