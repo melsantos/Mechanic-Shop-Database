@@ -793,24 +793,34 @@ public class MechanicShop{
 							System.out.print("\n");
 						}
 						// Select car from results
-						System.out.print("\n\tWould you like to enter a service request for one of these cars? [Y/N]: $ ");
-						String go = in.readLine();
-						if (go.equals("Y")){
-							// Select customer's car
-							System.out.print("\tEnter desired car's option id: $ ");
-							int car_choice = Integer.parseInt(in.readLine());
-							if (car_choice < 0 || car_choice >= carsOwnedResults.size()){
-								throw new IllegalArgumentException("Invalid car option id"); 
-							}
-							vin = carsOwnedResults.get(car_choice).get(0);
-							valid = true;
+						do {
+							try{
+								System.out.print("\n\tWould you like to enter a service request for one of these cars? [Y/N]: $ ");
+								String go = in.readLine();
+								if (go.equals("Y")){
+									// Select customer's car
+									System.out.print("\tEnter desired car's option id: $ ");
+									int car_choice = Integer.parseInt(in.readLine());
+									if (car_choice < 0 || car_choice >= carsOwnedResults.size()){
+										throw new IllegalArgumentException("Error: Invalid car option id"); 
+									}
+									vin = carsOwnedResults.get(car_choice).get(0);
+									valid = true;
 
-						}
-						else {
-							// Add a new car for the existing customer
-							createCar = true;
-							valid = true;
-						}
+								}
+								else if (go.equals("N")) {
+									// Add a new car for the existing customer
+									createCar = true;
+									valid = true;
+								}
+								else {
+									throw new IllegalArgumentException("Error: Please use either  Y or N");
+								}
+							}
+							catch (Exception e){
+								System.err.println(e.getMessage());
+							}
+						}while(!valid);
 					}
 					catch (Exception e){
 						System.err.println(e.getMessage());
@@ -1052,7 +1062,10 @@ public class MechanicShop{
 			query += "FROM Car C, (";
 				query += "SELECT S.car_vin, COUNT(S.car_vin) as amt_service ";
 				query += "FROM Service_Request S ";
-				query += "GROUP BY S.car_vin ";
+				query += "WHERE S.rid NOT IN ( ";
+					query += "SELECT C.rid ";
+					query += "FROM Closed_Request C ";
+				query += ") GROUP BY S.car_vin ";
 				query += "ORDER BY amt_service DESC ";
 				query += ") mostServices ";
 			query += "WHERE C.vin = mostServices.car_vin ";
