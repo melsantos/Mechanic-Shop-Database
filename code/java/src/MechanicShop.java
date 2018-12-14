@@ -891,12 +891,103 @@ public class MechanicShop{
 	}
 	
 	public static void CloseServiceRequest(MechanicShop esql) throws Exception{//5
-		
+		try {
+			boolean valid = false;
+			int mid = -1; // Mechanic id
+			int rid = -1; // Service request number
+			int bill_amount = -1; // Billing
+
+			// Step 1: Ask for and validate mechanic id
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter mechanic id: $ ");
+					mid = Integer.parseInt(in.readLine());
+					if (mid <= 0){
+						throw new IllegalArgumentException("");
+					}
+					// Validate mechanic id
+					String validateMechanicQuery = "SELECT M.id FROM Mechanic M WHERE M.id = " + mid;
+					List<List<String>> validateMechanicResults = esql.executeQueryAndReturnResult(validateMechanicQuery);
+					Integer.parseInt(validateMechanicResults.get(0).get(0)); // Throws exception if result is empty
+					valid = true;
+				}
+				catch (Exception e){
+					System.err.println ("Error: Invalid mechanic id. Must be a positive nonzero integer");
+				}
+			}while(!valid);
+
+			// Step 2: Ask for and validate service request number
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter service request number: $ ");
+					rid = Integer.parseInt(in.readLine());
+					if (rid <= 0){
+						throw new IllegalArgumentException("");
+					}
+					// Validate service request number
+					String validateServiceQuery = "SELECT S.rid FROM Service_Request S WHERE S.rid = " + rid;
+					List<List<String>> validateServiceResults = esql.executeQueryAndReturnResult(validateServiceQuery);
+					Integer.parseInt(validateServiceResults.get(0).get(0)); // Throws exception if result is empty
+
+					// Check if service request is already closed
+					String isRequestClosedQuery = "SELECT 1 FROM Closed_Request C WHERE C.rid = " + rid;
+					List<List<String>> isRequestClosedResults = esql.executeQueryAndReturnResult(isRequestClosedQuery);
+					try{
+						Integer.parseInt(isRequestClosedResults.get(0).get(0)); // If it throws an exception, the service request is still open
+						System.err.println ("Error: This service request has already been closed");						
+						valid = false;
+					}
+					catch (Exception e){
+						valid = true;
+					}
+					
+				}
+				catch (Exception e){
+					System.err.println ("Error: Invalid service request number. Must be a positive non-zero integer");
+				}
+			}while(!valid);
+
+			// Closing date
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");  
+			LocalDateTime now = LocalDateTime.now();  
+
+			// Comment
+			System.out.print("\tEnter any outstanding comments: $ ");
+			String comment = in.readLine();
+
+			// Bill
+			do{
+				valid = false;
+				try{
+					System.out.print("\tEnter total payment due for rendered service: $ ");
+					bill_amount = Integer.parseInt(in.readLine());
+					if (bill_amount <= 0){
+						throw new IllegalArgumentException("");
+					}
+					valid = true;
+				}
+				catch (Exception e){
+					System.err.println("Error: Invalid payment amount. Must be a positive nonzero integer");
+				}
+			}while(!valid);
+
+			// Complete service request
+			String query = "INSERT INTO Closed_Request(rid, mid, date, comment, bill) VALUES (";
+			query += rid + ", " + mid + ", \'" + dtf.format(now) + "\', \'" + comment + "\', " + bill_amount + ")";
+			esql.executeUpdate(query); 
+		}
+		catch (Exception e){
+			System.err.println (e.getMessage());
+		}
 	}
 	
 	public static void ListCustomersWithBillLessThan100(MechanicShop esql){//6
 		try{
-			String query = "SELECT date,comment,bill FROM Closed_Request WHERE bill < 100;";
+			String query = "SELECT cr.date, cr.comment, cr.bill ";
+			       query += "FROM Closed_Request cr "; 
+			       query += "WHERE cr.bill < 100;";
 			esql.executeQueryAndPrintResult(query);
 		}
 		catch(Exception e) {
@@ -907,7 +998,11 @@ public class MechanicShop{
 	public static void ListCustomersWithMoreThan20Cars(MechanicShop esql){//7
 		
 		try{
-			String query = "SELECT fname, lname FROM Customer, (SELECT customer_id,COUNT(customer_id) as car_num FROM Owns GROUP BY customer_id HAVING COUNT(customer_id) > 20) AS O WHERE O.customer_id = id;";
+			String query = "SELECT c.fname, c.lname ";
+			       query += "FROM Customer c, Owns O ";
+			       query += "WHERE c.id = o.customer_id ";
+			       query += "GROUP BY c.id ";
+			       query += "HAVING COUNT(*) > 20; ";
 			esql.executeQueryAndPrintResult(query);
 		}
 		catch(Exception e) {
@@ -917,12 +1012,12 @@ public class MechanicShop{
 	
 	public static void ListCarsBefore1995With50000Milles(MechanicShop esql){//8
 		try{
-			String query = "SELECT DISTINCT Car.vin, Car.make, Car.model, Car.year ";
+			String query = "SELECT DISTINCT Car.make, Car.model, Car.year ";
 			query += "FROM Car ";
 			query += "WHERE Car.vin = Any( ";
 				query += "SELECT S.car_vin ";
 				query += "FROM Service_Request S ";
-				query += "WHERE S.odometer = 50000 ";
+				query += "WHERE S.odometer < 50000 ";
 
 				query += "INTERSECT ";
 
@@ -960,14 +1055,14 @@ public class MechanicShop{
 
 	public static void ListCustomersInDescendingOrderOfTheirTotalBill(MechanicShop esql){//10
 		try {
-			String query = "SELECT C.fname , C.lname, Total ";
-			       query += "FROM Customer AS C,";
-			       query += "(SELECT sr.customer_id, SUM(CR.bill) AS Total ";
-			       query += "FROM Closed_Request AS CR, Service_Request AS SR ";
-			       query += "WHERE CR.rid = SR.rid ";
-			       query += "GROUP BY SR.customer_id) AS A ";
-			       query += "WHERE C.id=A.customer_id ";
-			       query += "ORDER BY A.Total DESC;";
+			String query = "SELECT c.fname , c.lname, bill_total.total ";
+			       query += "FROM Customer c, ";
+			       query += "(SELECT SUM(CR.bill) AS total, sr.customer_id ";
+			       query += "FROM Closed_Request cr, Service_Request sr ";
+			       query += "WHERE cr.rid = sr.rid ";
+			       query += "GROUP BY sr.customer_id) AS bill_total ";
+			       query += "WHERE c.id=bill_total.customer_id ";
+			       query += "ORDER BY bill_total.total DESC;";
 			esql.executeQueryAndPrintResult(query);
 
 		}
