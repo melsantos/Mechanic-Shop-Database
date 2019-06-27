@@ -1,5 +1,4 @@
 # CS166 Project: Mechanic Shop Database
-### *By Melissa Santos and Joshua Riley*
 A database system that tracks information about customers, car, mechanics, car ownership, service request and billing information. Built with Java and PostgreSQL.
 
 ## Functionality:
